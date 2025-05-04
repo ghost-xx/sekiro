@@ -87,10 +87,6 @@
                     <compilerVersion>1.8</compilerVersion>
                     <encoding>UTF-8</encoding>
                     <fork>true</fork>
-                    <compilerArgs>
-                        <arg>-Dfile.encoding=UTF-8</arg>
-                        <arg>-J-Dfile.encoding=UTF-8</arg>
-                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
@@ -114,7 +110,6 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.3.0</version>
                 <configuration>
-                    <encoding>UTF-8</encoding>
                     <archive>
                         <manifest>
                             <mainClass>cn.iinti.sekiro3.open.Bootstrap</mainClass>
