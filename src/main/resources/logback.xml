@@ -19,6 +19,8 @@
             <pattern>${normal-pattern}</pattern>
             <charset>UTF-8</charset>
         </encoder>
+        <target>System.out</target>
+        <withJansi>false</withJansi>
     </appender>
 
     <appender name="Sekiro" class="ch.qos.logback.classic.sift.SiftingAppender">
@@ -31,6 +33,7 @@
                 <File>${logDir}/${projectName}/groups/${sekiroGroup}/sekiro.log</File>
                 <encoder>
                     <pattern>${normal-pattern}</pattern>
+                    <charset>UTF-8</charset>
                 </encoder>
                 <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                     <fileNamePattern>${logDir}/${projectName}/groups/${sekiroGroup}/sekiro-%d{yyyy-MM-dd}.zip
@@ -59,6 +62,7 @@
         </rollingPolicy>
         <encoder>
             <pattern>${normal-pattern}</pattern>
+            <charset>UTF-8</charset>
         </encoder>
     </appender>
 
@@ -75,11 +79,13 @@
         </rollingPolicy>
         <encoder>
             <pattern>${normal-pattern}</pattern>
+            <charset>UTF-8</charset>
         </encoder>
     </appender>
 
     <logger name="Sekiro" level="INFO" additivity="false">
         <appender-ref ref="asyncSekiro"/>
+        <appender-ref ref="CONSOLE"/>
     </logger>
 
     <root level="INFO">

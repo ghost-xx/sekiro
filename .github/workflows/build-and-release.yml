@@ -76,6 +76,7 @@ jobs:
           STRICT_CHECK=$2
         fi
         
+
         java -jar sekiro-open-0.0.1.jar --sekiro.port=$PORT --sekiro.strict.bindClientCheck=$STRICT_CHECK
         EOF
         
