@@ -25,7 +25,10 @@ jobs:
         cache: maven
         
     - name: 构建项目
-      run: mvn -B clean package --file pom.xml
+      run: |
+        mvn -B clean package --file pom.xml
+        # 执行appassembler:assemble任务来生成正确的目录结构
+        mvn -B appassembler:assemble --file pom.xml
       
     - name: 获取版本号
       id: get_version
@@ -40,9 +43,78 @@ jobs:
       
     - name: 压缩构建文件
       run: |
-        mkdir release_files
+        mkdir -p release_files
         cp target/sekiro-open-0.0.1.jar release_files/
-        cp -r target/sekiro-open-demo release_files/
+        
+        # 检查sekiro-open-demo目录是否存在
+        if [ -d "target/sekiro-open-demo" ]; then
+          cp -r target/sekiro-open-demo release_files/
+        fi
+        
+        # 需要一个启动脚本
+        cat > release_files/start.sh << 'EOF'
+        #!/bin/bash
+        
+        # 默认端口
+        PORT=5612
+        STRICT_CHECK=true
+        
+        # 解析命令行参数
+        if [ $# -ge 1 ]; then
+          PORT=$1
+        fi
+        
+        if [ $# -ge 2 ]; then
+          STRICT_CHECK=$2
+        fi
+        
+        java -jar sekiro-open-0.0.1.jar --sekiro.port=$PORT --sekiro.strict.bindClientCheck=$STRICT_CHECK
+        EOF
+        
+        # Windows启动脚本
+        cat > release_files/start.bat << 'EOF'
+        @echo off
+        
+        REM 默认端口
+        set PORT=5612
+        set STRICT_CHECK=true
+        
+        REM 解析命令行参数
+        if not "%~1" == "" (
+          set PORT=%~1
+        )
+        
+        if not "%~2" == "" (
+          set STRICT_CHECK=%~2
+        )
+        
+        java -jar sekiro-open-0.0.1.jar --sekiro.port=%PORT% --sekiro.strict.bindClientCheck=%STRICT_CHECK%
+        pause
+        EOF
+        
+        # 添加执行权限
+        chmod +x release_files/start.sh
+        
+        # 创建README
+        cat > release_files/README.txt << 'EOF'
+        Sekiro 启动说明
+        ===============
+        
+        Linux/Mac启动方式:
+          ./start.sh [端口] [严格绑定检查]
+          
+        Windows启动方式:
+          start.bat [端口] [严格绑定检查]
+          
+        直接命令行启动:
+          java -jar sekiro-open-0.0.1.jar --sekiro.port=端口号 --sekiro.strict.bindClientCheck=true|false
+          
+        参数说明:
+          端口 - 可选，服务监听端口，默认5612
+          严格绑定检查 - 可选，true或false，默认true
+        EOF
+        
+        # 压缩文件
         cd release_files
         zip -r ../sekiro-${{ env.VERSION }}.zip ./*
       
@@ -65,6 +137,13 @@ jobs:
           
           ## 启动方式
           ```
+          # Linux/Mac:
+          ./start.sh [端口] [严格绑定检查]
+          
+          # Windows:
+          start.bat [端口] [严格绑定检查]
+          
+          # 直接命令行:
           java -jar sekiro-open-0.0.1.jar --sekiro.port=端口号 --sekiro.strict.bindClientCheck=true|false
           ```
           
