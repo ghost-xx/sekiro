@@ -1,0 +1,23 @@
+Windows命令行启动Sekiro（解决中文乱码）：
+
+1. 首先设置控制台编码为UTF-8：
+---------------------------------------
+chcp 65001
+---------------------------------------
+
+2. 然后用以下命令启动Sekiro（一行完整命令）：
+---------------------------------------
+java -Dfile.encoding=UTF-8 -Duser.language=zh -Duser.country=CN -Dsun.jnu.encoding=UTF-8 -Dlog4j.skipJansiCheck=false -jar target/sekiro-open-0.0.1.jar --sekiro.port=23000 --sekiro.strict.bindClientCheck=true
+---------------------------------------
+
+如果上面的命令仍有乱码，尝试以下命令：
+---------------------------------------
+java "-Dfile.encoding=UTF-8" "-Duser.language=zh" "-Duser.country=CN" "-Dsun.jnu.encoding=UTF-8" -jar target/sekiro-open-0.0.1.jar --sekiro.port=23000 --sekiro.strict.bindClientCheck=true
+---------------------------------------
+
+或者更简单的命令：
+---------------------------------------
+java -Dfile.encoding=UTF-8 -jar target/sekiro-open-0.0.1.jar --sekiro.port=23000 --sekiro.strict.bindClientCheck=true
+---------------------------------------
+
+如果还是有问题，请确保您的Java安装正确，并且已经编译时使用了UTF-8编码。 
