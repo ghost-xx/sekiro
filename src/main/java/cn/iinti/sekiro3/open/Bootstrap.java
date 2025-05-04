@@ -31,7 +31,6 @@ public class Bootstrap {
     @Getter
     public static Integer listenPort;
 
-    private static final String IntMessage = "welcome use sekiro framework, for more support please visit our website: https://iinti.cn/";
     public static boolean isLocalDebug;
 
     public static void main(String[] args) throws Exception {
@@ -39,21 +38,61 @@ public class Bootstrap {
             return;
         }
         InputStream resourceAsStream = Bootstrap.class.getClassLoader().getResourceAsStream("config.properties");
+
         properties.load(resourceAsStream);
 
         isLocalDebug = BooleanUtils.toBoolean(properties.getProperty("sekiro.localDebug"));
-
+        System.out.println("isLocalDebug:" + isLocalDebug);
+        parseNamedArgs(args);
         startUp();
         started = true;
+    }
+    
+
+    
+    private static void parseNamedArgs(String[] args) {
+        for (String arg : args) {
+            if (arg.startsWith("--")) {
+                String paramValue = arg.substring(2); // 移除前导的--
+                int equalsIndex = paramValue.indexOf('=');
+                
+                if (equalsIndex > 0) {
+                    String paramName = paramValue.substring(0, equalsIndex);
+                    String value = paramValue.substring(equalsIndex + 1);
+                    
+                    if ("sekiro.port".equals(paramName)) {
+                        try {
+                            int port = Integer.parseInt(value);
+                            if (port > 0 && port < 65536) {
+                                properties.setProperty("sekiro.port", value);
+
+                                log.info("参数设置端口: {}", port);
+                            } else {
+                                log.warn("命名参数端口号无效: {}，将使用配置文件中的默认值", value);
+                            }
+                        } catch (NumberFormatException e) {
+                            log.warn("解析命名参数端口号失败: {}，将使用配置文件中的默认值", value);
+                        }
+                    }
+                    
+                    if ("sekiro.strict.bindClientCheck".equals(paramName)) {
+                        String lowercaseValue = value.toLowerCase();
+                        if ("true".equals(lowercaseValue) || "false".equals(lowercaseValue)) {
+                            properties.setProperty("sekiro.strict.bindClientCheck", lowercaseValue);
+                            log.info("严格绑定客户端检查: {}", lowercaseValue);
+                        } else {
+                            log.warn("命名参数严格绑定客户端检查值无效: {}，将使用配置文件中的默认值", value);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static void startUp() {
         ServerBootstrap serverBootstrap = new ServerBootstrap();
-
         NioEventLoopGroup serverBossGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2, new DefaultThreadFactory("sekiro-boss"));
         NioEventLoopGroup serverWorkerGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 6, new DefaultThreadFactory("sekiro-worker"));
-
-
         serverBootstrap.group(serverBossGroup, serverWorkerGroup).channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel socketChannel) {
@@ -72,16 +111,25 @@ public class Bootstrap {
         });
 
         listenPort = NumberUtils.toInt(properties.getProperty("sekiro.port", "5612"));
-        log.info("start sekiro netty server,port:{}", listenPort);
-        log.info(IntMessage);
-        System.out.println(IntMessage);
+        String startMsg = "启动sekiro网络服务器,端口:" + listenPort;
+        log.info(startMsg);
+        String bindCheckMsg = "自动匹配客户端:" + isStrictBindClientCheck();
+        log.info(bindCheckMsg);
         serverBootstrap.bind(listenPort).addListener(future -> {
             if (future.isSuccess()) {
-                log.info("sekiro netty server start success");
+                String successMsg = "sekiro网络服务器启动成功";
+                log.info(successMsg);
+
             } else {
-                log.info("sekiro netty server start failed");
+                String failMsg = "sekiro网络服务器启动失败";
+                log.info(failMsg);
+
             }
         });
+    }
+
+    public static boolean isStrictBindClientCheck() {
+        return Boolean.parseBoolean(properties.getProperty("sekiro.strict.bindClientCheck", "false"));
     }
 
 }

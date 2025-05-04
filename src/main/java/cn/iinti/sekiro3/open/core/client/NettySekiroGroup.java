@@ -11,6 +11,7 @@ import cn.iinti.sekiro3.open.framework.trace.EventScene;
 import cn.iinti.sekiro3.open.framework.trace.Recorder;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import cn.iinti.sekiro3.open.Bootstrap;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -188,7 +189,7 @@ public class NettySekiroGroup {
             }
             emptyQueueCounter++;
             recorder.recordEvent("pool queue empty");
-            if (emptyQueueCounter <= 5) {
+            if (emptyQueueCounter <= 9) {
                 ValueCallback.failed(input, "pool queue empty");
                 return;
             }
@@ -290,20 +291,27 @@ public class NettySekiroGroup {
         String group = requestJson.getString(Constants.REVERSED_WORDS.GROUP);
         String bindClient = requestJson.getString(Constants.REVERSED_WORDS.BIND_CLIENT);
         String sekiroAllocateKey = requestJson.getString(Constants.REVERSED_WORDS.CONSTANT_INVOKE);
-
         if (StringUtils.isBlank(group)) {
             ValueCallback.failed(valueCallback, "the param {group} not presented");
             return;
         }
-
-
         NettySekiroGroup sekiroGroup = NettySekiroGroup.createOrGet(group);
-        if (StringUtils.isNotBlank(bindClient)) {
+        boolean strictBindClient = Bootstrap.isStrictBindClientCheck();
+        if (strictBindClient) {
+            if (!requestJson.containsKey("bindClient") || StringUtils.isBlank(bindClient)) {
+                ValueCallback.failed(valueCallback, "参数 {bindClient} 不能为空或未传递。");
+                return;
+            }
             sekiroGroup.fetchByClientId(bindClient, valueCallback);
-        } else if (StringUtils.isNotBlank(sekiroAllocateKey)) {
-            sekiroGroup.consistentAllocate(sekiroAllocateKey, valueCallback);
         } else {
-            sekiroGroup.queueRotateAllocate(valueCallback);
+            // 宽松模式：只要有有效值就分配，否则自动分配
+            if (StringUtils.isNotBlank(bindClient)) {
+                sekiroGroup.fetchByClientId(bindClient, valueCallback);
+            } else if (StringUtils.isNotBlank(sekiroAllocateKey)) {
+                sekiroGroup.consistentAllocate(sekiroAllocateKey, valueCallback);
+            } else {
+                sekiroGroup.queueRotateAllocate(valueCallback);
+            }
         }
     }
 

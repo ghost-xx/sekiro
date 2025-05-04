@@ -13,6 +13,13 @@
     <property name="normal-pattern"
               value="[%d [%t] %5p %c{50}:%L]  %m%n"/>
 
+    <!-- 添加控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${normal-pattern}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
 
     <appender name="Sekiro" class="ch.qos.logback.classic.sift.SiftingAppender">
         <discriminator>
@@ -78,6 +85,8 @@
     <root level="INFO">
         <appender-ref ref="FILE"/>
         <appender-ref ref="ERROR"/>
+        <!-- 添加控制台输出引用 -->
+        <appender-ref ref="CONSOLE"/>
     </root>
 
 </configuration>
