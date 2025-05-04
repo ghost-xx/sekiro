@@ -149,7 +149,4 @@ jobs:
           
           ## 配置说明
           - sekiro.port: 服务监听端口，默认为5612
-          - sekiro.strict.bindClientCheck: 严格绑定客户端检查，设置为true或false
-      
-    - name: 更新依赖图
-      uses: advanced-security/maven-dependency-submission-action@v3 
+          - sekiro.strict.bindClientCheck: 严格绑定客户端检查，设置为true或false 
